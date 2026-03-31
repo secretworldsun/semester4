@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto text-center">
+        <h1 class="mb-3">Курсы валют Центрального Банка РФ</h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 mx-auto">
+        <form action="{{ url_for('set_currencies') }}" method="post" class="card p-3 shadow-sm">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" name="currencies" 
+                       placeholder="USD, EUR, GBP" value="{{ ','.join(current_currencies) }}">
+                <button class="btn btn-primary" type="submit">Получить
+		</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+    {% for rate in rates %}
+    <div class="col">
+        <div class="card currency-card h-100 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0 text-center">{{ rate.id }}</h5>
+            </div>
+            <div class="card-body text-center">
+                <p class="card-text">{{ rate.name }}</p>
+                <h3 class="text-primary">{{ "%.2f"|format(rate.value) }} ₽</h3>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if message %}
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+{% endblock %}
