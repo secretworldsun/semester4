@@ -1,0 +1,332 @@
+openapi: 3.0.0
+info:
+  title: Sample API
+  version: 1.0.0
+servers:
+- url: https://d5d5m0tq9v8rq2uvqjf0.svoluuab.apigw.yandexcloud.net
+paths:
+  /:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': '180364'
+        http_code: 200
+        http_headers:
+          Content-Type: text/plain;
+          Access-Control-Allow-Origin: '*'
+  /login:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': '180364'
+        http_code: 200
+        http_headers:
+          Content-Type: text/plain; charset=UTF-8
+          Access-Control-Allow-Origin: '*'
+  /sample:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': "function task(x) {\n   return x * (this ** 2);\n}"
+        http_code: 200
+        http_headers:
+          Content-Type: text/plain;
+          Access-Control-Allow-Origin: '*'
+  /promise:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          text/plain: |
+            function task(x) {
+                return new Promise((resolve, reject) => {
+                    if (x < 18) {
+                        resolve('yes');
+                    } else {
+                        reject('no');
+                    }
+                });
+            }
+        http_code: 200
+        http_headers:
+          Content-Type: text/plain; charset=UTF-8
+          Access-Control-Allow-Origin: '*'
+  /fetch:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          text/html: |
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+                <title>Fetch Test</title>
+            </head>
+            <body>
+                <input type="text" id="inp" placeholder="Введите URL">
+                <button id="bt">Запрос</button>
+                <script>
+                    document.getElementById('bt').onclick = function() {
+                        const url = document.getElementById('inp').value;
+                        fetch(url)
+                            .then(response => response.text())
+                            .then(data => {
+                                document.getElementById('inp').value = data;
+                            })
+                            .catch(error => {
+                                document.getElementById('inp').value = 'Ошибка: ' + error.message;
+                            });
+                    };
+                </script>
+            </body>
+            </html>
+        http_code: 200
+        http_headers:
+          Content-Type: text/html; charset=UTF-8
+          Access-Control-Allow-Origin: '*'
+  /result4:
+    get:
+        x-yc-apigateway-integration:
+        type: dummy
+        content:
+          text/html: |
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+                <title>Fetch Test</title>
+            </head>
+            <body>
+                <input type="text" id="inp" placeholder="Введите URL">
+                <button id="bt">Запрос</button>
+                <script>
+                module.exports.handler = async (event, context) => {
+                if (event.httpMethod === 'OPTIONS') {
+                    return {
+                    statusCode: 200,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+                        'Access-Control-Allow-Headers': 'x-test,ngrok-skip-browser-warning,Content-Type,Accept,Access-Control-Allow-Headers'
+                        },
+                        body: ''
+                    };
+                }
+                const xTestHeader = event.headers?.['x-test'] || '';
+                const requestBody = event.body || '';
+                const jsonResponse = {
+                message: "180364"
+                'x-result': xTestHeader,
+                'x-body': requestBody
+                };
+                return {
+                    statusCode: 200,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+                        'Access-Control-Allow-Headers': 'x-test,ngrok-skip-browser-warning,Content-Type,Accept,Access-Control-Allow-Headers'
+                    },
+                    body: JSON.stringify(jsonResponse)
+                };
+            };
+            </script>
+            </body>
+            </html>
+        http_code: 200
+        http_headers:
+          Content-Type: text/plain;
+          Access-Control-Allow-Origin: '*'
+  /size2json:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          text/html: |
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+            </head>
+            <body>
+                <script>
+                    const imageSize = require('image-size');
+                    module.exports.handler = async (event, context) => {
+                        if (!event.body) {
+                            return {
+                                statusCode: 400,
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ error: 'No request body' })
+                            };
+                        }
+                        try {
+                            const contentType = event.headers['content-type'] || event.headers['Content-Type'];
+                            if (!contentType || !contentType.includes('multipart/form-data')) {
+                                return {
+                                    statusCode: 400,
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ error: 'Content-Type must be multipart/form-data' })
+                                };
+                            }
+                            const boundaryMatch = contentType.match(/boundary=(.+)$/);
+                            if (!boundaryMatch) {
+                                return {
+                                    statusCode: 400,
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ error: 'Invalid boundary in Content-Type' })
+                                };
+                            }
+                            const boundary = '--' + boundaryMatch[1];
+                            const bodyParts = event.body.split(boundary);
+                            let imageBuffer = null;
+                            for (const part of bodyParts) {
+                                if (part.includes('name="image"') && (part.includes('.png') || part.includes('image/png'))) {
+                                    const headersBodySeparator = part.indexOf('\r\n\r\n');
+                                    if (headersBodySeparator !== -1) {
+                                        const base64Data = part
+                                            .substring(headersBodySeparator + 4)
+                                            .replace(/\r\n$/, '');
+                                        imageBuffer = Buffer.from(base64Data, 'base64');
+                                    }
+                                    break;
+                                }
+                            }
+                            if (!imageBuffer) {
+                                return {
+                                    statusCode: 400,
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ error: 'Image file not found in form data' })
+                                };
+                            }
+                            const dimensions = imageSize(imageBuffer);
+                            return {
+                                statusCode: 200,
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    width: dimensions.width,
+                                    height: dimensions.height
+                                })
+                            };
+                        } catch (error) {
+                            return {
+                                statusCode: 500,
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ error: 'Failed to process image', details: error.message })
+                            };
+                        }
+                    };
+                </script>
+            </body>
+            </html>
+        http_code: 200
+        http_headers:
+          Content-Type: text/plain;
+          Access-Control-Allow-Origin: '*'
+  /DDMMYY:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          text/html: |
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+            </head>
+            <body>
+                <script>
+                    import json
+                    from datetime import datetime
+                    import re
+                    def handler(event, context):
+                        path = event['path']
+                        if re.match(r'^/\d{6}$', path):
+                            date_str = path[1:]
+                            try:
+                                day = int(date_str[0:2])
+                                month = int(date_str[2:4])
+                                year = int(date_str[4:6])
+                                if year < 20:
+                                    year += 2020
+                                else:
+                                    year += 1900
+                            except:
+                                return {
+                                    'statusCode': 400,
+                                    'body': json.dumps({'error': 'Invalid date format'})
+                                }
+                            formatted_date = f"{day:02d}-{month:02d}-{year}"
+                            return {
+                                'statusCode': 200,
+                                'headers': {
+                                    'Content-Type': 'application/json'
+                                },
+                                'body': json.dumps({
+                                    'date': formatted_date,
+                                    'login': '180364'
+                                })
+                            };
+                </script>
+            </body>
+            </html>
+        http_code: 200
+        http_headers:
+          Content-Type: text/html; charset=UTF-8
+          Access-Control-Allow-Origin: '*'
+  /api/rv:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          text/html: |
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+            </head>
+            <body>
+                <script>
+                    import json
+                    import re
+                    def handler(event, context):
+                        path = event['path']
+                        if path.startswith('/api/rv/'):
+                            string = path[8:]
+                            if not string or not re.match(r'^[a-z]+$', string):
+                                return {
+                                    'statusCode': 400,
+                                    'body': json.dumps({'error': 'String must contain only lowercase Latin letters'})
+                                }
+                            reversed_string = string[::-1]
+                            return {
+                                'statusCode': 200,
+                                'body': reversed_string
+                            }
+                        else:
+                            return {
+                                'statusCode': 404,
+                                'body': json.dumps({'error': 'Not found'})
+                            ;
+                </script>
+            </body>
+            </html>
+        http_code: 200
+        http_headers:
+          Content-Type: text/html; charset=UTF-8
+          Access-Control-Allow-Origin: '*'
