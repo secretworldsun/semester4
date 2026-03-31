@@ -238,95 +238,60 @@ paths:
         http_headers:
           Content-Type: text/plain;
           Access-Control-Allow-Origin: '*'
-  /DDMMYY:
+/{date}:
     get:
+      summary: Return current date and login
+      operationId: getDate
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^\d{6}$
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                  login:
+                    type: string
       x-yc-apigateway-integration:
         type: dummy
-        content:
-          text/html: |
-            <!DOCTYPE html>
-            <html lang="ru">
-            <head>
-                <meta charset="UTF-8">
-            </head>
-            <body>
-                <script>
-                    import json
-                    from datetime import datetime
-                    import re
-                    def handler(event, context):
-                        path = event['path']
-                        if re.match(r'^/\d{6}$', path):
-                            date_str = path[1:]
-                            try:
-                                day = int(date_str[0:2])
-                                month = int(date_str[2:4])
-                                year = int(date_str[4:6])
-                                if year < 20:
-                                    year += 2020
-                                else:
-                                    year += 1900
-                            except:
-                                return {
-                                    'statusCode': 400,
-                                    'body': json.dumps({'error': 'Invalid date format'})
-                                }
-                            formatted_date = f"{day:02d}-{month:02d}-{year}"
-                            return {
-                                'statusCode': 200,
-                                'headers': {
-                                    'Content-Type': 'application/json'
-                                },
-                                'body': json.dumps({
-                                    'date': formatted_date,
-                                    'login': '180364'
-                                })
-                            };
-                </script>
-            </body>
-            </html>
         http_code: 200
         http_headers:
-          Content-Type: text/html; charset=UTF-8
-          Access-Control-Allow-Origin: '*'
-  /api/rv:
+          Content-Type: application/json
+        content:
+          application/json: |-
+            {"date": "DD-MM-YYYY", "login": "yandex-cloud-agent"}
+  /api/rv/{str}:
     get:
+      summary: Reverse input string
+      operationId: reverseString
+      parameters:
+        - name: str
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[a-z]+$
+            minLength: 1
+      responses:
+        '200':
+          description: Reversed string
+          content:
+            text/plain:
+              schema:
+                type: string
       x-yc-apigateway-integration:
         type: dummy
-        content:
-          text/html: |
-            <!DOCTYPE html>
-            <html lang="ru">
-            <head>
-                <meta charset="UTF-8">
-            </head>
-            <body>
-                <script>
-                    import json
-                    import re
-                    def handler(event, context):
-                        path = event['path']
-                        if path.startswith('/api/rv/'):
-                            string = path[8:]
-                            if not string or not re.match(r'^[a-z]+$', string):
-                                return {
-                                    'statusCode': 400,
-                                    'body': json.dumps({'error': 'String must contain only lowercase Latin letters'})
-                                }
-                            reversed_string = string[::-1]
-                            return {
-                                'statusCode': 200,
-                                'body': reversed_string
-                            }
-                        else:
-                            return {
-                                'statusCode': 404,
-                                'body': json.dumps({'error': 'Not found'})
-                            ;
-                </script>
-            </body>
-            </html>
         http_code: 200
         http_headers:
-          Content-Type: text/html; charset=UTF-8
-          Access-Control-Allow-Origin: '*'
+          Content-Type: text/plain
+        content:
+          text/plain: "{str}"
